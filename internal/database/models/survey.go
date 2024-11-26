@@ -3,9 +3,8 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"io/ioutil"
-	"log"
-	"path/filepath"
+
+	"github.com/iyilmaz24/Go-Id-Auth-Server/internal/database"
 )
 
 type Survey struct {
@@ -17,19 +16,15 @@ type SurveyModel struct {
 	DB *sql.DB
 }
 
-func LoadQuery (fileName string) string {
-	path := filepath.Join("internal", "database", "sql", fileName)
-
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatalf("Failed to load query %s: %v", fileName, err)
-	}
-
-	return string(content)
+type HealthCheck struct {
+	Status          string `json:"status"`
+	OpenConnections int    `json:"open_connections"`
+	InUse           int    `json:"in_use"`
+	Idle            int    `json:"idle"`
 }
 
 func (sm *SurveyModel) Get(id string) (*Survey, error) {
-	sqlQuery := LoadQuery("get_survey_by_id.sql")
+	sqlQuery := database.LoadQuery("get_survey_by_id.sql")
 	row := sm.DB.QueryRow(sqlQuery, id)
 
 	s := &Survey{}
@@ -44,3 +39,21 @@ func (sm *SurveyModel) Get(id string) (*Survey, error) {
 	
 	return s, nil
 }
+
+func (m *SurveyModel) CheckHealth() (*HealthCheck, error) {
+	err := m.DB.Ping()
+	status := "healthy"
+	if err != nil {
+		status = "unhealthy"
+	}
+
+	stats := m.DB.Stats()
+
+	return &HealthCheck{
+		Status:          status,
+		OpenConnections: stats.OpenConnections,
+		InUse:           stats.InUse,
+		Idle:            stats.Idle,
+	}, err
+}
+

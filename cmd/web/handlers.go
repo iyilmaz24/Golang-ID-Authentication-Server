@@ -49,3 +49,20 @@ func (app *application) getSurvey(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 }
+
+func (app *application) getSurveyDbHealth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	stats, err := app.surveys.CheckHealth()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		app.errorLog.Printf("Could not encode health check response: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+

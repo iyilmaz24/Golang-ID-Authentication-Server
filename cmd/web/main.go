@@ -1,12 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/iyilmaz24/Go-Id-Auth-Server/internal/config"
+	"github.com/iyilmaz24/Go-Id-Auth-Server/internal/database"
 	"github.com/iyilmaz24/Go-Id-Auth-Server/internal/database/models"
+	_ "github.com/lib/pq"
 )
 
 type application struct {
@@ -20,17 +22,9 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	dsn, ok := os.LookupEnv("DB_DSN")
-	if !ok {
-		errorLog.Fatal("DSN not set in environment variables")
-	}
+	appConfig := config.LoadConfig()
 
-	port, ok := os.LookupEnv("PORT")
-	if !ok {
-		port = ":3000"
-	}
-
-	db, err := openDB(dsn)
+	db, err := database.OpenDB(appConfig.DSN)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -43,26 +37,13 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:     port,
+		Addr:     appConfig.Port,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Starting server on %v", port)
+	infoLog.Printf("Starting server on %v", srv.Addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
 
-func openDB(dsn string) (*sql.DB, error) {
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
