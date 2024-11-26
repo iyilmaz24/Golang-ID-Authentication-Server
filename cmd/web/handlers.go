@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/iyilmaz24/Go-Id-Auth-Server/internal/database/models"
 )
@@ -31,8 +32,9 @@ func (app *application) getSurvey(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
+	cleanedId := strings.ToUpper(input.ID)
 
-	survey, err := app.surveys.Get(input.ID)
+	survey, err := app.surveys.Get(cleanedId)
 	if err != nil {
 		if err == models.ErrNoRecord {
 			app.clientError(w, http.StatusNotFound)
