@@ -8,6 +8,8 @@ import (
 type Config struct {
 	DSN  string
 	Port string
+	CertFile string
+	KeyFile string
 }
 
 func LoadConfig() *Config {
@@ -21,8 +23,17 @@ func LoadConfig() *Config {
 		port = ":3000"
 	}
 
+	certFile := os.Getenv("CERT_PATH")
+    keyFile := os.Getenv("KEY_PATH")
+
+	if certFile == "" || keyFile == "" {
+		log.Fatal("CERT_PATH and KEY_PATH environment variables must be set for HTTPS")
+	}
+
 	return &Config{
 		DSN:  dsn,
 		Port: port,
+		CertFile: certFile,
+		KeyFile: keyFile,
 	}
 }

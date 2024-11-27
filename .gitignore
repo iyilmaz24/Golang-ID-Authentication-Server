@@ -1,3 +1,5 @@
 /internal/database/sql
 .envrc
 tmp
+aws-linux-build/golang-server
+internal/database/sql-queries.go

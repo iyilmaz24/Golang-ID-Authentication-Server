@@ -1,0 +1,35 @@
+
+
+# import a file into ec2 from local folder (be in the local folder within terminal)
+scp -i <ssh-key-file-name>.pem golang-server ec2-user@<ec2-public-ip-address>:/home/ec2-user/
+
+    # in AWS Linux EC2 terminal - add execute permissions for Golang server binary
+    chmod +x golang-server
+
+
+
+
+# start the server with sudo to allow binding to port 443, pass os env variables to sudo user's env
+sudo nohup env PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
+tail -f server.log
+
+
+
+
+# renew the LetsEncrypt SSL certificate
+sudo certbot certificates
+sudo certbot renew
+
+    # certbot wont renew if not close to expiry date (30 days within end of 90 day expiry period) - can force the certificate renewal with below command
+    sudo certbot renew --force-renewal
+
+sudo pkill -f golang-server
+sudo nohup env PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
+
+
+
+
+# crontab's cron job every Monday at 3am to try cert renewal with certbot && kill Golang server process && then reboot it with correct permissions
+0 3 * * 1 sudo certbot renew --quiet && sudo pkill -f golang-server && sudo nohup env PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH /home/ec2-user/golang-server > /home/ec2-user/server.log 2>&1 &
+
+

@@ -24,7 +24,7 @@ type HealthCheck struct {
 }
 
 func (sm *SurveyModel) Get(id string) (*Survey, error) {
-	sqlQuery := database.LoadQuery("get_survey_by_id.sql")
+	sqlQuery := database.GetSurveyByIdQuery()
 	row := sm.DB.QueryRow(sqlQuery, id)
 
 	s := &Survey{}
