@@ -1,6 +1,6 @@
-Golang ID Authentication Server
+## Golang ID Authentication Server
 
-This is a Golang-based HTTP server designed to authenticate IDs concurrently. The server is hosted on an AWS EC2 instance running Amazon Linux 2023 and uses PostgreSQL hosted on AWS RDS as its database.
+#### This is a Golang-based HTTP server designed to authenticate IDs concurrently. The server is hosted on an AWS EC2 instance running Amazon Linux 2023 and uses PostgreSQL hosted on AWS RDS as its database.
 
 Requirements
 
