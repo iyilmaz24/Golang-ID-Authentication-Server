@@ -1,5 +1,11 @@
 
 
+# build a compatible Golang binary file for the AWS Linux 2023 runtime
+GOOS=linux GOARCH=amd64 go build -o golang-server ./cmd/web
+
+
+
+
 # import a file into ec2 from local folder (be in the local folder within terminal)
 scp -i <ssh-key-file-name>.pem golang-server ec2-user@<ec2-public-ip-address>:/home/ec2-user/
 
