@@ -16,7 +16,7 @@ scp -i <ssh-key-file-name>.pem golang-server ec2-user@<ec2-public-ip-address>:/h
 
 
 # start the server with sudo to allow binding to port 443, pass os env variables to sudo user's env
-sudo nohup env PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
+sudo nohup env CORS_ORIGIN=$CORS_ORIGIN PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
 tail -f server.log
 
 
@@ -30,7 +30,7 @@ sudo certbot renew
     sudo certbot renew --force-renewal
 
 sudo pkill -f golang-server
-sudo nohup env PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
+sudo nohup env CORS_ORIGIN=$CORS_ORIGIN PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
 
 
 
