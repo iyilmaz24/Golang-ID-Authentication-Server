@@ -44,9 +44,9 @@ func main() {
 
 	infoLog.Printf("Starting server on %v", srv.Addr)
 
-	err = srv.ListenAndServeTLS(appConfig.CertFile, appConfig.KeyFile)
+	err = srv.ListenAndServe()
 	if err != nil {
-        errorLog.Fatal(err)
-    }
+		errorLog.Fatal(err)
+	}
 }
 

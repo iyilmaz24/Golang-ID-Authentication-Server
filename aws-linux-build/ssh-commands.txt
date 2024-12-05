@@ -14,9 +14,11 @@ scp -i <ssh-key-file-name>.pem golang-server ec2-user@<ec2-public-ip-address>:/h
 
 
 
+# deprecated:
+    # start the server with sudo to allow binding to port 443, pass os env variables to sudo user's env
+    sudo nohup env CORS_ORIGIN=$CORS_ORIGIN PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
 
-# start the server with sudo to allow binding to port 443, pass os env variables to sudo user's env
-sudo nohup env CORS_ORIGIN=$CORS_ORIGIN PORT=$PORT DB_DSN=$DB_DSN CERT_PATH=$CERT_PATH KEY_PATH=$KEY_PATH ./golang-server > server.log 2>&1 &
+nohup env CORS_ORIGIN=$CORS_ORIGIN DB_DSN=$DB_DSN ./golang-server > server.log 2>&1 &
 tail -f server.log
 
 

@@ -1,4 +1,3 @@
-/internal/database/sql
 .envrc
 tmp
 aws-linux-build/golang-server

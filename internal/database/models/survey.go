@@ -10,6 +10,7 @@ import (
 type Survey struct {
 	SurveyID   string
 	Link       string
+	Used 	   bool
 }
 
 type SurveyModel struct {
@@ -28,7 +29,7 @@ func (sm *SurveyModel) Get(id string) (*Survey, error) {
 	row := sm.DB.QueryRow(sqlQuery, id)
 
 	s := &Survey{}
-	err := row.Scan(&s.Link, &s.SurveyID)
+	err := row.Scan(&s.Link, &s.SurveyID, &s.Used)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
