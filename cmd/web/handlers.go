@@ -25,6 +25,7 @@ func (app *application) getSurvey(w http.ResponseWriter, r *http.Request) {
 	}
 	var input struct {
 		ID string `json:"id"`
+		Region string `json:"region"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -32,9 +33,10 @@ func (app *application) getSurvey(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
-	cleanedId := strings.ToUpper(input.ID)
+	cleanedId := strings.ToUpper(strings.TrimSpace(input.ID))
+	cleanedRegion := strings.ToUpper(strings.TrimSpace(input.Region))
 
-	survey, err := app.surveys.Get(cleanedId)
+	survey, err := app.surveys.Get(cleanedId, cleanedRegion)
 	if err != nil {
 		if err == models.ErrNoRecord {
 			app.clientError(w, http.StatusNotFound)

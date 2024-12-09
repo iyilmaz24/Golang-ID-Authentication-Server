@@ -24,8 +24,14 @@ type HealthCheck struct {
 	Idle            int    `json:"idle"`
 }
 
-func (sm *SurveyModel) Get(id string) (*Survey, error) {
-	sqlQuery := database.GetSurveyByIdQuery()
+func (sm *SurveyModel) Get(id, region string) (*Survey, error) {
+	var sqlQuery string
+	if region == "R1" {
+		sqlQuery = database.GetSurveyByIdQueryR1()
+	} else {
+		sqlQuery = database.GetSurveyByIdQueryR2()
+	}
+	
 	row := sm.DB.QueryRow(sqlQuery, id)
 
 	s := &Survey{}
