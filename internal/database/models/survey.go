@@ -26,7 +26,7 @@ type HealthCheck struct {
 
 func (sm *SurveyModel) Get(id, region string) (*Survey, error) {
 	var sqlQuery string
-	if region == "R1" {
+	if region == "FL" {
 		sqlQuery = database.GetSurveyByIdQueryR1()
 	} else {
 		sqlQuery = database.GetSurveyByIdQueryR2()
