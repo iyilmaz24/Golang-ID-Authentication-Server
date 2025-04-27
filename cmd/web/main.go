@@ -19,12 +19,12 @@ type application struct {
 
 func main() {
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	infoLog := log.New(os.Stdout, "***INFO LOG:\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "***ERROR LOG:\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	appConfig := config.LoadConfig()
 
-	db, err := database.OpenDB(appConfig.DSN)
+	db, err := database.OpenDB(appConfig.DbDsn)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -32,8 +32,8 @@ func main() {
 
 	app := &application{
 		errorLog: errorLog,
-		infoLog: infoLog,
-		surveys: &models.SurveyModel{DB: db},
+		infoLog:  infoLog,
+		surveys:  &models.SurveyModel{DB: db},
 	}
 
 	srv := &http.Server{
@@ -49,4 +49,3 @@ func main() {
 		errorLog.Fatal(err)
 	}
 }
-

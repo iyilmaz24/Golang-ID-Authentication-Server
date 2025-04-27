@@ -24,7 +24,7 @@ func (app *application) getSurvey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var input struct {
-		ID string `json:"id"`
+		ID     string `json:"id"`
 		Region string `json:"region"`
 	}
 
@@ -54,19 +54,22 @@ func (app *application) getSurvey(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) getSurveyDbHealth(w http.ResponseWriter, r *http.Request) {
+// Lambda-optimized health check: Returns simple 200 OK / 5xx status based on DB ping.
+func (app *application) getSurveyDbHealth(w http.ResponseWriter, r *http.Request) { 
 	w.Header().Set("Content-Type", "application/json")
 
-	stats, err := app.surveys.CheckHealth()
+	// stats, err := app.surveys.CheckHealth()
+	_, err := app.surveys.CheckHealth()
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		app.errorLog.Printf("Could not encode health check response: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	}
-}
+	w.Write([]byte(`{"status":"healthy"}`))
 
+	// if err := json.NewEncoder(w).Encode(stats); err != nil {
+	// 	app.errorLog.Printf("Could not encode health check response: %v", err)
+	// 	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	// }
+}

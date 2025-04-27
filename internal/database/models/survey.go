@@ -48,12 +48,12 @@ func (sm *SurveyModel) Get(id, region string) (*Survey, error) {
 }
 
 func (m *SurveyModel) CheckHealth() (*HealthCheck, error) {
-	err := m.DB.Ping()
 	status := "healthy"
+
+	err := m.DB.Ping()
 	if err != nil {
 		status = "unhealthy"
 	}
-
 	stats := m.DB.Stats()
 
 	return &HealthCheck{
