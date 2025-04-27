@@ -1,4 +1,4 @@
 .envrc
 tmp
-aws-linux-build/golang-server
+aws-linux-build/golang-id-auth
 internal/database/sql-queries.go

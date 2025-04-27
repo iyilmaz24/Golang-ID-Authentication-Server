@@ -1,62 +1,128 @@
+// Package config provides configuration management using AWS Systems Manager Parameter Store
 package config
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
 var (
-	instance *Config
 	once     sync.Once
+	instance *Config
 )
 
 type Config struct {
-	DSN  string
-	Port string
-	Cors map[string]bool
-
+	DbDsn         string
+	Port          string
+	Cors          map[string]bool
+	AdminPassword string
 	// CertFile string
 	// KeyFile string
 }
 
+type ConfigDefinition struct {
+	Path         string
+	Type         string
+	DefaultValue string
+}
+
+var configDefinitions = map[string]ConfigDefinition{
+	"CORS_ORIGIN": {
+		Path: "/backend/internal/admin-cors-origin",
+		Type: "StringList",
+	},
+	"DB_DSN": {
+		Path: "/backend/internal/db_dsn",
+		Type: "SecureString",
+	},
+	"PORT": {
+		Path:         "/backend/ports/id-auth",
+		Type:         "String",
+		DefaultValue: ":8200",
+	},
+	"ADMIN_PASSWORD": {
+		Path: "/backend/internal/admin-password",
+		Type: "SecureString",
+	},
+}
+
+func getSystemsManagerParameter(paramName string, ssmClient *ssm.Client) string {
+
+	paramInfo, exists := configDefinitions[paramName]
+	if !exists {
+		log.Fatalf("***ERROR (config): Parameter '%s' not found in configDefinitions", paramName)
+	}
+	isEncrypted := paramInfo.Type == "SecureString"
+
+	log.Printf("Attempting to retrieve parameter: %s (Path: %s)", paramName, paramInfo.Path)
+
+	param, err := ssmClient.GetParameter(context.TODO(), &ssm.GetParameterInput{
+		Name:           aws.String(paramInfo.Path),
+		WithDecryption: aws.Bool(isEncrypted),
+	})
+
+	if err != nil {
+		log.Printf("ERROR retrieving parameter %s: %v", paramName, err)
+
+		username, _ := os.Hostname()
+		log.Printf("Hostname: %s", username)
+
+		if paramInfo.DefaultValue != "" {
+			log.Printf("Using default value for %s", paramName)
+			return paramInfo.DefaultValue
+		}
+		errorMsg := fmt.Sprintf("***ERROR (config): Failed to retrieve parameter '%s' from Systems Manager: %v", paramName, err)
+		log.Fatal(errorMsg)
+	}
+	log.Printf("Successfully retrieved parameter: %s", paramName)
+
+	return *param.Parameter.Value
+}
+
 func LoadConfig() *Config {
-	once.Do(func() { // ensure that the config is only loaded once
+	once.Do(func() {
 
-		dsn, ok := os.LookupEnv("DB_DSN")
-		if !ok {
-			log.Fatal("DB_DSN is not set in environment variables")
+		cfg, err := config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion("us-east-1"), // Specify your AWS region
+		)
+		if err != nil {
+			log.Fatal("***ERROR (config): Unable to load AWS SDK config: ", err)
 		}
-		port := ":8200"
+		log.Println("AWS SDK Config loaded successfully")
 
-		corsString := os.Getenv("CORS_ORIGIN")
-		if corsString == "" {
-			log.Fatal("$CORS_ORIGIN env variable not set")
-		}
+		ssmClient := ssm.NewFromConfig(cfg)
+
+		corsString := getSystemsManagerParameter("CORS_ORIGIN", ssmClient)
 		corsUrls := strings.Split(corsString, ",")
 
-		corsOrigin := make(map[string]bool)
+		corsOrigin := make(map[string]bool, len(corsUrls))
 		for _, url := range corsUrls {
-			corsOrigin[url] = true
+			trimmedURL := strings.TrimSpace(url)
+			if trimmedURL != "" {
+				corsOrigin[trimmedURL] = true
+			}
 		}
 
-		// certFile := os.Getenv("CERT_PATH")
-		// keyFile := os.Getenv("KEY_PATH")
-
-		// if certFile == "" || keyFile == "" {
-		// 	log.Fatal("CERT_PATH and KEY_PATH environment variables must be set for HTTPS")
-		// }
+		port := getSystemsManagerParameter("PORT", ssmClient)
+		dbDsn := getSystemsManagerParameter("DB_DSN", ssmClient)
+		adminPassword := getSystemsManagerParameter("ADMIN_PASSWORD", ssmClient)
 
 		instance = &Config{
-			DSN:  dsn,
-			Port: port,
-			Cors: corsOrigin,
-
-			// CertFile: certFile,
-			// KeyFile: keyFile,
+			Port:          port,
+			Cors:          corsOrigin,
+			DbDsn:         dbDsn,
+			AdminPassword: adminPassword,
 		}
 
+		log.Println("Configuration loaded successfully")
 	})
 
 	return instance
