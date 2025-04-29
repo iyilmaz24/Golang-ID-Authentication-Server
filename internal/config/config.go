@@ -36,7 +36,7 @@ type ConfigDefinition struct {
 
 var configDefinitions = map[string]ConfigDefinition{
 	"CORS_ORIGIN": {
-		Path: "/backend/internal/admin-cors-origin",
+		Path: "/backend/internal/id-auth-cors-origin",
 		Type: "StringList",
 	},
 	"DB_DSN": {
